@@ -1,0 +1,9 @@
+jupyter
+ipykernel
+scikit-learn
+opencv-contrib-python
+matplotlib
+seaborn
+numpy
+pandas
+augmentor
