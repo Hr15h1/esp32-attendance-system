@@ -5,8 +5,16 @@ import matplotlib.pyplot as plt
 import joblib
 import os
 from deepface import DeepFace
-from datetime import datetime
+from datetime import datetime, time
 import pandas as pd
+
+
+slot1_start = time(9, 0)
+slot1_end = time(9, 10)
+
+slot2_start = time(12, 45)
+slot2_end = time(13, 0)
+
 
 
 
@@ -51,9 +59,22 @@ def predict_face(face_vector, classes):
 
     return name
 
+def is_within_timeslot(current_time):
+    if slot1_start <= current_time <= slot1_end:
+        return True
+    
+    if slot2_start <= current_time <= slot2_end:
+        return True
+    
+    return False
+
 def mark_attendance(name):
     current_date = str(datetime.now().date())
     current_time = datetime.now().strftime("%H:%M:%S")
+    now = datetime.now().time()
+
+    if not is_within_timeslot(now):
+        return "Cannot mark attendance. You are late!!"
 
     if os.path.exists("attendance.csv"):
         att = pd.read_csv("attendance.csv")
@@ -61,7 +82,7 @@ def mark_attendance(name):
         att = pd.DataFrame(columns = ["date", "time", "name", "attendance"])
 
     already_marked = (
-        (att["name"] == name & att["date"] == current_date)
+        (att["name"] == name) & (att["date"] == current_date)
     ).any()
 
     if already_marked:
@@ -74,12 +95,41 @@ def mark_attendance(name):
         "attendance": "present"
     }
 
-    att.loc[len[att]] = new_row
+    att.loc[len(att)] = new_row
     att.to_csv("attendance.csv", index = False)
 
     return "Attendance Marked for student"
 
+def mark_absentees():
+    current_date = str(datetime.now().date())
+    current_time = datetime.now().strftime("%H:%M:%S")
 
+
+    if os.path.exists("attendance.csv"):
+        att = pd.read_csv("attendance.csv")
+    else:
+        att = pd.DataFrame(columns = ["date", "time", "name", "attendance"])
+
+    present_today = att[att["date"] == current_date]["name"].tolist()
+
+    all_students = app.config["CLASSES"]
+
+    absentees = [s for s in all_students if s not in present_today]
+
+    for student in absentees:
+
+        new_row = {
+            "date": current_date,
+            "time": current_time,
+            "name": student,
+            "attendance": "absent"
+        }
+
+        att.loc[len(att)] = new_row
+    att.to_csv("attendance.csv", index=False)
+    return "Absentees marked"
+
+    
 @app.route("/upload", methods=["POST"])
 def receive_image():
 
