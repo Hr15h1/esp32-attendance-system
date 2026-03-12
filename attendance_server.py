@@ -9,12 +9,37 @@ from datetime import datetime, time
 import pandas as pd
 
 
-slot1_start = time(9, 0)
-slot1_end = time(9, 10)
+# slot1_start = time(9, 10)
+# slot1_end = time(9, 10)
 
-slot2_start = time(12, 45)
-slot2_end = time(13, 0)
 
+# slot2_start = time(10, 0)
+# slot2_end = time(10, 10)
+
+
+# slot3_start = time(11, 0)
+# slot3_end = time(11, 10)
+
+
+# slot4_start = time(13, 0)
+# slot4_end = time(13, 10)
+
+
+# slot5_start = time(14, 0)
+# slot5_end = time(14, 10)
+
+
+# slot6_start = time(15, 0)
+# slot6_end = time(15, 10)
+
+timeslots = {
+    "Hour 1": (time(9, 0), time(9, 10)),
+    "Hour 2": (time(10, 0), time(10, 10)),
+    "Hour 3": (time(11, 0), time(11, 10)),
+    "Hour 4": (time(13, 0), time(13, 10)),
+    "Hour 5": (time(14, 0), time(14, 10)),
+    "Hour 6": (time(15, 0), time(15, 10)),
+}
 
 
 
@@ -60,11 +85,10 @@ def predict_face(face_vector, classes):
     return name
 
 def is_within_timeslot(current_time):
-    if slot1_start <= current_time <= slot1_end:
-        return True
-    
-    if slot2_start <= current_time <= slot2_end:
-        return True
+    for hour, (start, end) in timeslots.items():
+
+        if start <= current_time <= end:
+            return hour
     
     return False
 
@@ -73,8 +97,11 @@ def mark_attendance(name):
     current_time = datetime.now().strftime("%H:%M:%S")
     now = datetime.now().time()
 
+    hour = is_within_timeslot(now)
+    
     if not is_within_timeslot(now):
         return "Cannot mark attendance. You are late!!"
+    
 
     if os.path.exists("attendance.csv"):
         att = pd.read_csv("attendance.csv")
